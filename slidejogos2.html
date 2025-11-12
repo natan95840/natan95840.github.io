@@ -8,6 +8,9 @@
   <!-- Fonte -->
   <link href="https://fonts.googleapis.com/css2?family=Hind&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 
+  <!-- Biblioteca externa para ícones (Font Awesome) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
   <style>
     * {
       box-sizing: border-box;
@@ -77,19 +80,22 @@
       width: 42px;
       height: 42px;
       border-radius: 50%;
+      color: white;
+      font-size: 22px;
       transition: all 0.3s ease;
-      
+      text-decoration: none;
+      line-height: 0; /* 🔥 remove o espaçamento branco */
+    }
+
+    .insta-btn i {
+      display: block; /* 🔥 garante centralização sem sobra */
+      line-height: 1;
     }
 
     .insta-btn:hover {
       background: #a84405;
       transform: scale(1.1);
-    }
-
-    .insta-btn img {
-      width: 22px;
-      height: 22px;
-      
+      color: #F2B33D;
     }
 
     /* Container da pesquisa */
@@ -111,7 +117,6 @@
       justify-content: center;
       cursor: pointer;
       transition: background 0.3s ease, transform 0.3s ease;
-      
       z-index: 2;
     }
 
@@ -120,10 +125,9 @@
       transform: scale(1.1);
     }
 
-    .search-btn img {
-      width: 20px;
-      height: 20px;
-      filter: brightness(0) invert(1);
+    .search-btn i {
+      font-size: 18px;
+      color: white;
     }
 
     /* Input que expande */
@@ -174,7 +178,7 @@
     }
 
     .game-card:hover {
-      transform:scale(1.05);
+      transform: scale(1.05);
       box-shadow: 0 8px 20px rgba(0,0,0,0.5);
       background: rgba(255,255,255,0.15);
     }
@@ -241,12 +245,13 @@
       <div class="search-container" id="searchBox">
         <input type="text" class="search-input" id="searchInput" placeholder="Pesquisar jogos...">
         <button class="search-btn" id="searchBtn">
-          <img src="lupa.png" alt="Lupa">
+          <i class="fa-solid fa-magnifying-glass"></i>
         </button>
       </div>
 
+      <!-- Ícone do Instagram com Font Awesome -->
       <a href="https://share.google/gtMuIo9dl51G1Urx7" target="_blank" class="insta-btn" title="Instagram">
-        <img src="Instagram.png"  alt="Instagram">
+        <i class="fa-brands fa-instagram"></i>
       </a>
     </div>
   </nav>
@@ -278,14 +283,12 @@
       <h3>ação</h3>
     </a>
 
-        <a href="https://www.friv.com" target="_blank" class="game-card">
+    <a href="https://www.friv.com" target="_blank" class="game-card">
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original-wordmark.svg" alt="Super Corrida">
       <h3>Corrida</h3>
     </a>
 
-
     <p class="no-results" id="noResults">Nenhum jogo encontrado<br><img src="what.gif" alt="" style="width:100px; height:100px;"></p>
-    
   </main>
 
   <script>
