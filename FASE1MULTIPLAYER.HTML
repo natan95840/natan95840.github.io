@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mario Run 2 Jogadores</title>
+    <link rel="icon" href="jump.png" type="image/x-icon">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url(bg.jpg);
+            background-size: cover;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            gap: 10px;
+        }
+
+        .game-container {
+            position: relative;
+            width: 500px;
+            height: 400px;
+            border: 4px solid #0d0d0d;
+            border-radius: 15px;
+            background-color: #0AACFF;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .chao {
+            position: absolute;
+            bottom: 0;
+            width: 1000px;
+            height: 60px;
+            background-image: url(chao.png);
+            animation: moveGround 3s linear infinite;
+        }
+
+        @keyframes moveGround {
+            from { transform: translateX(0); }
+            to { transform: translateX(-500px); }
+        }
+
+        .nuvem {
+            position: absolute;
+            top: 20px;
+            background-image: url('nuvem.png');
+            background-size: cover;
+            opacity: 0.8;
+        }
+
+        .player {
+            position: absolute;
+            bottom: 60px;
+            left: 50px;
+            width: 80px;
+            height: 80px;
+            background-image: url('run.gif');
+            background-size: cover;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .player:hover {
+            transform: scale(1.1);
+        }
+
+        .obstacle {
+            position: absolute;
+            bottom: 60px;
+            width: 70px;
+            height: 70px;
+            background-image: url('goomba.gif');
+            background-size: cover;
+        }
+
+        .score {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+            z-index: 10;
+            font-family: 'Press Start 2P', cursive;
+        }
+.but1 {
+            font-size: 40px;
+             background-color: #C84C0C;
+            border-color: brown;
+            border-width: 10px;
+            position: fixed;
+            top: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 90px;
+            width: 500px;
+        }
+    </style>
+</head>
+<body>
+
+    <button class="but1"><img src="informacao2.png"></button>
+    <!-- Tela da Esquerda -->
+    <div class="game-container" id="gameLeft">
+        <div class="chao"></div>
+        <div class="player" id="playerLeft"></div>
+        <div class="score" id="scoreLeft">Pontuação: 0</div>
+    </div>
+
+    <!-- Tela da Direita -->
+    <div class="game-container" id="gameRight">
+        <div class="chao"></div>
+        <div class="player" id="playerRight"></div>
+        <div class="score" id="scoreRight">Pontuação: 0</div>
+    </div>
+
+    <script>
+        function startGame(gameId, playerId, scoreId, jumpKey) {
+            const gameContainer = document.getElementById(gameId);
+            const player = document.getElementById(playerId);
+            const scoreDisplay = document.getElementById(scoreId);
+
+            let isJumping = false;
+            let isGameOver = false;
+            let gravity = 0.5;
+            let velocity = 0;
+            let jumpPower = 12;
+            let score = 0;
+
+            function jump() {
+                if (isJumping || isGameOver) return;
+                isJumping = true;
+                velocity = jumpPower;
+                player.style.backgroundImage = "url('jump.png')";
+            }
+
+            function applyPhysics() {
+                if (isGameOver) return;
+
+                let playerBottom = parseInt(window.getComputedStyle(player).getPropertyValue("bottom"));
+                velocity -= gravity;
+                playerBottom += velocity;
+
+                if (playerBottom <= 60) {
+                    playerBottom = 60;
+                    isJumping = false;
+                    player.style.backgroundImage = "url('run.gif')";
+                }
+                player.style.bottom = playerBottom + "px";
+            }
+
+            function createObstacle() {
+                if (isGameOver) return;
+
+                const obstacle = document.createElement("div");
+                obstacle.classList.add("obstacle");
+                gameContainer.appendChild(obstacle);
+                obstacle.style.left = "500px";
+
+                const moveInterval = setInterval(() => {
+                    if (isGameOver) {
+                        clearInterval(moveInterval);
+                        return;
+                    }
+
+                    let obstacleLeft = parseInt(window.getComputedStyle(obstacle).getPropertyValue("left"));
+                    let playerBottom = parseInt(window.getComputedStyle(player).getPropertyValue("bottom"));
+
+                    if (obstacleLeft <= 120 && obstacleLeft >= 80 && playerBottom <= 100) {
+                        clearInterval(moveInterval);
+                        gameOver();
+                        return;
+                    }
+
+                    if (obstacleLeft <= -70) {
+                        obstacle.remove();
+                        clearInterval(moveInterval);
+                    } else {
+                        obstacle.style.left = (obstacleLeft - 6) + "px";
+                    }
+                }, 20);
+
+                setTimeout(createObstacle, Math.random() * 2000 + 1000);
+            }
+
+            function updateScore() {
+                if (!isGameOver) {
+                    score++;
+                    scoreDisplay.innerText = "Pontuação: " + score;
+
+                    if (score >= 100) {
+                        alert("Parabéns! Jogador na tela " + (gameId === "gameLeft" ? "esquerda" : "direita") + " venceu!");
+                        location.reload();
+                    }
+                }
+            }
+
+            function createCloud() {
+                if (document.querySelectorAll(`#${gameId} .nuvem`).length >= 3) return;
+
+                const cloud = document.createElement("div");
+                cloud.classList.add("nuvem");
+                gameContainer.appendChild(cloud);
+                cloud.style.left = "500px";
+                cloud.style.top = Math.random() * 80 + "px";
+
+                const cloudSize = Math.random() * 60 + 50;
+                cloud.style.width = cloudSize + "px";
+                cloud.style.height = cloudSize * 0.6 + "px";
+
+                const speed = Math.random() * 1.5 + 0.5;
+                const moveInterval = setInterval(() => {
+                    const cloudLeft = parseInt(window.getComputedStyle(cloud).getPropertyValue("left"));
+                    if (cloudLeft <= -60) {
+                        cloud.style.left = "500px";
+                    } else {
+                        cloud.style.left = (cloudLeft - speed) + "px";
+                    }
+                }, 50);
+
+                if (!isGameOver) {
+                    setTimeout(createCloud, Math.random() * 3000 + 4000);
+                }
+            }
+
+            function gameOver() {
+                isGameOver = true;
+                player.style.backgroundImage = "url('morte.png')";
+
+                let deathVelocity = 10;
+
+                const deathFall = setInterval(() => {
+                    let playerBottom = parseInt(window.getComputedStyle(player).getPropertyValue("bottom"));
+                    playerBottom += deathVelocity;
+                    deathVelocity -= gravity;
+
+                    if (playerBottom <= 60) {
+                        playerBottom = 60;
+                        clearInterval(deathFall);
+                        setTimeout(() => {
+                            alert("Game Over na tela " + (gameId === "gameLeft" ? "esquerda" : "direita") + "! Pontuação: " + score);
+                            location.reload();
+                        }, 1000);
+                    }
+
+                    player.style.bottom = playerBottom + "px";
+                }, 20);
+            }
+
+            // Início
+            createObstacle();
+            setInterval(updateScore, 500);
+            setInterval(applyPhysics, 20);
+            createCloud();
+
+            // Eventos de pulo
+            gameContainer.addEventListener("click", jump);
+
+            document.addEventListener("keydown", function(event) {
+                if (event.code === jumpKey) {
+                    jump();
+                }
+            });
+        }
+
+        // Jogador da esquerda - tecla espaço
+        startGame("gameLeft", "playerLeft", "scoreLeft", "Space");
+
+        // Jogador da direita - tecla P
+        startGame("gameRight", "playerRight", "scoreRight", "KeyP");
+
+    </script>
+</body>
+</html>

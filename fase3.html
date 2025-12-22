@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Emoji vs Zombies - Fase 3 Piscina</title>
+    <style>
+        :root {
+            --bg-color: #187;
+            --ui-panel: rgba(0, 0, 0, 0.85);
+            --seed-bg: #5d4037;
+            --seed-ready: #2ecc71;
+            --accent: #2980b9;
+            --victory: #f1c40f;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background-color: var(--bg-color);
+            font-family: 'Arial Rounded MT Bold', sans-serif; user-select: none;
+        }
+
+        #game-container {
+            position: relative; width: 100vw; height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        canvas { background-color: #3d8c40; box-shadow: 0 0 50px rgba(0,0,0,0.6); cursor: crosshair; }
+
+        /* Canvas de Confetes na Frente de Tudo (Z-INDEX 9999) */
+        #confettiCanvas {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; z-index: 9999;
+        }
+
+        #ui-top {
+            position: absolute; top: 20px; left: 20px; right: 20px;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            pointer-events: none; z-index: 5;
+        }
+
+        .sun-display {
+            background: var(--ui-panel); color: #f1c40f; padding: 12px 25px;
+            border-radius: 40px; font-weight: bold; font-size: 2rem;
+            display: flex; align-items: center; gap: 10px; border: 3px solid #f39c12;
+        }
+
+        .seed-bar { display: flex; gap: 8px; margin-top: 15px; pointer-events: auto; }
+
+        .seed-slot {
+            width: 75px; height: 100px; 
+            background: var(--seed-bg); 
+            border: 3px solid #3e2723;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; border-radius: 10px; cursor: pointer;
+            transition: all 0.2s ease; color: white;
+        }
+
+        .seed-slot.affordable { background: var(--seed-ready); border-color: #27ae60; }
+        .seed-slot.active { transform: scale(1.1); border-color: white; box-shadow: 0 0 15px white; }
+
+        #countdown-timer {
+            position: absolute; font-size: 8rem; font-weight: bold; color: white;
+            text-shadow: 0 0 30px black; pointer-events: none; z-index: 100;
+            transition: opacity 0.5s, transform 0.5s; opacity: 0; transform: translate(-50%, -50%) scale(0.5);
+            top: 50%; left: 50%;
+        }
+        #countdown-timer.show { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: white; z-index: 10;
+        }
+
+        .hidden { display: none !important; }
+
+        .menu-card {
+            background: var(--ui-panel); padding: 30px; border-radius: 20px;
+            text-align: center; border: 4px solid var(--accent);
+            max-width: 80%;
+        }
+
+        .plant-selection-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+        .plant-card { background: #34495e; padding: 10px; border-radius: 10px; cursor: pointer; border: 2px solid transparent; }
+        .plant-card.selected { border-color: #f1c40f; transform: scale(1.05); }
+
+        button { padding: 12px 30px; font-size: 1.2rem; background: var(--accent); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        
+        .progress-container {
+            background: var(--ui-panel); padding: 10px; border-radius: 12px; width: 180px; color: white;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        .progress-bar-bg { width: 100%; height: 10px; background: #34495e; border-radius: 5px; overflow: hidden; margin-top: 5px; }
+        #progress-fill { width: 0%; height: 100%; background: #3498db; transition: width 0.3s; }
+
+        .thanks-msg { font-size: 1.5rem; margin: 20px 0; color: #ecf0f1; line-height: 1.4;
+          z-index: 99999;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    <canvas id="confettiCanvas" class="hidden"></canvas>
+    
+    <div id="countdown-timer">7</div>
+
+    <div id="ui-top" class="hidden">
+        <div>
+            <div id="sun-hud" class="sun-display">☀️ <span id="sun-count">100</span></div>
+            <div class="seed-bar" id="seed-bar"></div>
+        </div>
+        <div class="progress-container">
+            <div style="font-size: 0.7rem; font-weight: bold;">PROGRESSO PISCINA</div>
+            <div class="progress-bar-bg"><div id="progress-fill"></div></div>
+        </div>
+    </div>
+
+    <div id="screen-start" class="overlay">
+        <div class="menu-card">
+            <h1 style="color: #3498db;">FASE 3: A PISCINA</h1>
+            <p>Escolha 4 ou 5 plantas. Lily Pad é essencial!</p>
+            <div class="plant-selection-grid" id="selection-grid"></div>
+            <button id="btn-start" disabled>Defender Piscina</button>
+        </div>
+    </div>
+
+    <div id="screen-victory" class="overlay hidden">
+        <div class="menu-card" style="border-color: var(--victory);">
+            <h1 style="color: var(--victory); font-size: 3rem;">INCRÍVEL! 🏆</h1>
+            <p class="thanks-msg">
+                Obrigado por jogar!<br>
+                Você defendeu a piscina com maestria e estratégia.<br>
+                <strong>O Jardim está Seguro e em Festa!</strong>
+            </p>
+            <button onclick="location.reload()">Jogar Novamente 🔄</button>
+        </div>
+    </div>
+
+    <div id="screen-gameover" class="overlay hidden">
+        <div class="menu-card">
+            <h1 style="color: #e74c3c; font-size: 3rem;">VOCÊ AFUNDOU</h1>
+            <button onclick="location.reload()">Tentar Novamente</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const cfxCanvas = document.getElementById('confettiCanvas');
+const cfxCtx = cfxCanvas.getContext('2d');
+
+const selectionGrid = document.getElementById('selection-grid');
+const btnStart = document.getElementById('btn-start');
+const sunDisplay = document.getElementById('sun-count');
+const seedBar = document.getElementById('seed-bar');
+const countdownEl = document.getElementById('countdown-timer');
+const progressFill = document.getElementById('progress-fill');
+
+const ROWS = 6, COLS = 9;
+let CELL_WIDTH, CELL_HEIGHT;
+const ZOMBIES_TO_WIN = 30;
+
+const PLANT_DATA = [
+    { id: 'lilypad', emoji: '🪷', cost: 25, hp: 100, type: 'support' },
+    { id: 'sunflower', emoji: '🌻', cost: 50, hp: 100, type: 'producer' },
+    { id: 'peashooter', emoji: '🌱', cost: 100, hp: 120, type: 'attacker', proj: '🟢', dmg: 20 },
+    { id: 'wallnut', emoji: '🥔', cost: 50, hp: 800, type: 'tank' },
+    { id: 'cherry', emoji: '🍒', cost: 150, hp: 50, type: 'bomb' },
+    { id: 'repeater', emoji: '🌿', cost: 200, hp: 120, type: 'attacker', proj: '🟢🟢', dmg: 20, double: true }
+];
+
+let gameState = 'START', selectedSeeds = [], suns = 100, score = 0, activeSlot = null, preparationTime = true;
+let zombiesSpawned = 0;
+const plants = [], zombies = [], projectiles = [], sunDrops = [], explosions = [], confetti = [];
+
+function isWater(row) { return row === 2 || row === 3; }
+
+function resize() {
+    const aspect = 9 / 6;
+    const w = window.innerWidth * 0.98, h = window.innerHeight * 0.98;
+    if (w / h > aspect) { canvas.height = h; canvas.width = h * aspect; }
+    else { canvas.width = w; canvas.height = w / aspect; }
+    CELL_WIDTH = canvas.width / COLS; CELL_HEIGHT = canvas.height / ROWS;
+    
+    cfxCanvas.width = window.innerWidth;
+    cfxCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+class Confetti {
+    constructor() {
+        this.x = Math.random() * cfxCanvas.width;
+        this.y = Math.random() * -cfxCanvas.height;
+        this.size = Math.random() * 10 + 5;
+        this.color = `hsl(${Math.random() * 360}, 80%, 50%)`;
+        this.speed = Math.random() * 3 + 2;
+        this.angle = Math.random() * 6.28;
+    }
+    update() {
+        this.y += this.speed;
+        this.x += Math.sin(this.angle) * 1.5;
+        if (this.y > cfxCanvas.height) this.y = -20;
+    }
+    draw() {
+        cfxCtx.fillStyle = this.color;
+        cfxCtx.fillRect(this.x, this.y, this.size, this.size);
+    }
+}
+
+PLANT_DATA.forEach(plant => {
+    const card = document.createElement('div');
+    card.className = 'plant-card';
+    card.innerHTML = `<div style="font-size: 2rem">${plant.emoji}</div><div style="font-size:0.8rem">${plant.cost} ☀️</div>`;
+    card.onclick = () => {
+        if (selectedSeeds.includes(plant)) { selectedSeeds = selectedSeeds.filter(p => p !== plant); card.classList.remove('selected'); }
+        else if (selectedSeeds.length < 5) { selectedSeeds.push(plant); card.classList.add('selected'); }
+        btnStart.disabled = selectedSeeds.length < 4;
+    };
+    selectionGrid.appendChild(card);
+});
+
+btnStart.onclick = () => {
+    gameState = 'PLAYING';
+    document.getElementById('screen-start').classList.add('hidden');
+    document.getElementById('ui-top').classList.remove('hidden');
+    initSeedBar();
+    startCountdown();
+    gameLoop();
+};
+
+function startCountdown() {
+    let count = 7;
+    const updateCountdown = () => {
+        countdownEl.innerText = count > 0 ? count : "VAI!";
+        countdownEl.classList.add('show');
+        setTimeout(() => {
+            countdownEl.classList.remove('show');
+            if (count > -1) { count--; setTimeout(updateCountdown, 500); }
+            else { preparationTime = false; spawnZombie(); dropSkySun(); }
+        }, 500);
+    };
+    updateCountdown();
+}
+
+function initSeedBar() {
+    seedBar.innerHTML = '';
+    selectedSeeds.forEach(plant => {
+        const slot = document.createElement('div');
+        slot.className = 'seed-slot';
+        slot.dataset.cost = plant.cost;
+        slot.innerHTML = `<span style="font-size: 2rem">${plant.emoji}</span><span style="font-weight:bold; font-size:0.9rem">${plant.cost}</span>`;
+        slot.onclick = () => {
+            if (suns >= plant.cost) {
+                activeSlot = plant;
+                document.querySelectorAll('.seed-slot').forEach(s => s.classList.remove('active'));
+                slot.classList.add('active');
+            }
+        };
+        seedBar.appendChild(slot);
+    });
+}
+
+class Explosion {
+    constructor(x, y) { this.x = x; this.y = y; this.scale = 0; this.timer = 0; }
+    draw() {
+        ctx.save(); ctx.translate(this.x, this.y); ctx.scale(this.scale, this.scale);
+        ctx.font = `${CELL_HEIGHT}px Arial`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText("💥", 0, 0); ctx.restore();
+    }
+    update() { this.timer++; if (this.timer < 15) this.scale += (2.5 - this.scale) * 0.2; else this.scale *= 0.8; return this.timer > 30; }
+}
+
+class Sun {
+    constructor(x, y, fromSky) {
+        this.x = x; this.y = y;
+        this.targetY = fromSky ? Math.random() * (canvas.height * 0.7) + 50 : y;
+        this.life = 600; this.collecting = false; this.opacity = 1;
+    }
+    draw() {
+        ctx.save(); ctx.globalAlpha = this.opacity; ctx.font = `${CELL_HEIGHT * 0.5}px Arial`;
+        ctx.fillText("☀️", this.x - CELL_WIDTH * 0.2, this.y + CELL_HEIGHT * 0.1); ctx.restore();
+    }
+    update() {
+        if (this.collecting) {
+            this.x += (50 - this.x) * 0.15; this.y += (50 - this.y) * 0.15;
+            this.opacity -= 0.02; return this.opacity <= 0;
+        } else {
+            if (this.y < this.targetY) this.y += 1.5;
+            this.life--; return this.life <= 0;
+        }
+    }
+}
+
+class Zombie {
+    constructor(row, type) {
+        this.row = row; this.x = canvas.width; this.y = row * CELL_HEIGHT;
+        this.hp = type === 'tank' ? 400 : 200; this.maxHp = this.hp;
+        this.speed = type === 'tank' ? 0.12 : 0.18; 
+        this.emoji = isWater(row) ? (type === 'tank' ? '🧜‍♀️' : '🏊‍♂️') : (type === 'tank' ? '🧟‍♀️' : '🧟‍♂️');
+        this.isEating = false;
+    }
+    draw() {
+        ctx.save();
+        let depth = 0;
+        if (isWater(this.row)) {
+            depth = 15;
+            ctx.beginPath();
+            ctx.rect(this.x - 20, this.y, CELL_WIDTH + 40, CELL_HEIGHT - 5);
+            ctx.clip();
+        }
+        ctx.font = `${CELL_HEIGHT * 0.75}px Arial`;
+        ctx.fillText(this.emoji, this.x, this.y + CELL_HEIGHT * 0.75 + depth);
+        ctx.fillStyle = 'red'; ctx.fillRect(this.x + 20, this.y + 5, (CELL_WIDTH - 40), 4);
+        ctx.fillStyle = '#2ecc71'; ctx.fillRect(this.x + 20, this.y + 5, (CELL_WIDTH - 40) * (this.hp / this.maxHp), 4);
+        ctx.restore();
+    }
+    update() {
+        if (!this.isEating) this.x -= this.speed;
+        if (this.x < -CELL_WIDTH/2) gameState = 'GAMEOVER';
+    }
+}
+
+class Plant {
+    constructor(x, y, row, col, data) {
+        this.x = x; this.y = y; this.row = row; this.col = col;
+        this.data = data; this.hp = data.hp; this.timer = 0;
+        this.onTop = null; 
+    }
+    draw() {
+        ctx.font = `${CELL_HEIGHT * 0.7}px Arial`;
+        ctx.fillText(this.data.emoji, this.x + CELL_WIDTH * 0.15, this.y + CELL_HEIGHT * 0.8);
+        if (this.onTop) {
+            ctx.fillText(this.onTop.data.emoji, this.x + CELL_WIDTH * 0.15, this.y + CELL_HEIGHT * 0.6);
+        }
+    }
+    update() {
+        this.timer++;
+        const fire = (p) => {
+            if (p.data.id === 'sunflower' && p.timer % 600 === 0) sunDrops.push(new Sun(p.x + CELL_WIDTH/2, p.y + CELL_HEIGHT/2, false));
+            if (p.data.type === 'attacker' && p.timer % 120 === 0) {
+                if (zombies.some(z => z.row === p.row && z.x > p.x)) {
+                    projectiles.push({ x: p.x + 60, y: p.y + CELL_HEIGHT/3, row: p.row, emoji: '🟢', dmg: p.data.dmg });
+                    if(p.data.double) { 
+                        setTimeout(() => projectiles.push({ x: p.x + 60, y: p.y + CELL_HEIGHT/3, row: p.row, emoji: '🟢', dmg: p.data.dmg }), 200);
+                    }
+                }
+            }
+        };
+        fire(this);
+        if (this.onTop) { this.onTop.timer++; fire(this.onTop); }
+        if (this.data.id === 'cherry' && this.timer === 45) {
+            explosions.push(new Explosion(this.x + CELL_WIDTH/2, this.y + CELL_HEIGHT/2));
+            zombies.forEach(z => { if (Math.abs(z.x/CELL_WIDTH - this.col) <= 1.5 && Math.abs(z.row - this.row) <= 1) z.hp -= 1000; });
+            this.hp = 0;
+        }
+    }
+}
+
+function spawnZombie() {
+    if (gameState !== 'PLAYING' || preparationTime || zombiesSpawned >= ZOMBIES_TO_WIN) return;
+    zombies.push(new Zombie(Math.floor(Math.random() * ROWS), Math.random() > 0.8 ? 'tank' : 'normal'));
+    zombiesSpawned++;
+    progressFill.style.width = (zombiesSpawned / ZOMBIES_TO_WIN) * 100 + "%";
+    setTimeout(spawnZombie, Math.max(3000, 8000 - (score * 150)));
+}
+
+function dropSkySun() {
+    if (gameState !== 'PLAYING') return;
+    sunDrops.push(new Sun(Math.random() * (canvas.width - 50) + 25, -50, true));
+    setTimeout(dropSkySun, 8000 + Math.random() * 4000);
+}
+
+canvas.addEventListener('mousedown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+    for (let s of sunDrops) { if (!s.collecting && Math.abs(mx - s.x) < 50 && Math.abs(my - s.y) < 50) { s.collecting = true; suns += 25; return; } }
+
+    if (activeSlot) {
+        const col = Math.floor(mx / CELL_WIDTH), row = Math.floor(my / CELL_HEIGHT);
+        if (col >= COLS - 1) return;
+        let pAt = plants.find(p => p.row === row && p.col === col);
+        
+        if (isWater(row)) {
+            if (activeSlot.id === 'lilypad' && !pAt) {
+                plants.push(new Plant(col * CELL_WIDTH, row * CELL_HEIGHT, row, col, activeSlot));
+                suns -= activeSlot.cost;
+            } else if (pAt && pAt.data.id === 'lilypad' && !pAt.onTop && activeSlot.id !== 'lilypad') {
+                pAt.onTop = { data: activeSlot, timer: 0, hp: activeSlot.hp, x: pAt.x, y: pAt.y, row: row };
+                suns -= activeSlot.cost;
+            }
+        } else if (!pAt && activeSlot.id !== 'lilypad') {
+            plants.push(new Plant(col * CELL_WIDTH, row * CELL_HEIGHT, row, col, activeSlot));
+            suns -= activeSlot.cost;
+        }
+        activeSlot = null;
+        document.querySelectorAll('.seed-slot').forEach(s => s.classList.remove('active'));
+    }
+});
+
+function gameLoop() {
+    if (gameState === 'GAMEOVER') {
+        document.getElementById('screen-gameover').classList.remove('hidden');
+        return;
+    }
+
+    if (gameState === 'VICTORY') {
+        document.getElementById('screen-victory').classList.remove('hidden');
+        cfxCanvas.classList.remove('hidden');
+        cfxCtx.clearRect(0, 0, cfxCanvas.width, cfxCanvas.height);
+        if (confetti.length < 150) confetti.push(new Confetti());
+        confetti.forEach(c => { c.update(); c.draw(); });
+        requestAnimationFrame(gameLoop);
+        return;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for(let r=0; r<ROWS; r++) {
+        for(let c=0; c<COLS; c++) {
+            ctx.fillStyle = isWater(r) ? ((r+c)%2 ? '#2980b9':'#3498db') : ((r+c)%2 ? '#27ae60':'#2ecc71');
+            ctx.fillRect(c * CELL_WIDTH, r * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
+        }
+    }
+
+    if (zombiesSpawned >= ZOMBIES_TO_WIN && zombies.length === 0) {
+        gameState = 'VICTORY';
+    }
+
+    document.querySelectorAll('.seed-slot').forEach(slot => {
+        if (parseInt(slot.dataset.cost) <= suns) slot.classList.add('affordable');
+        else slot.classList.remove('affordable');
+    });
+
+    plants.forEach((p, i) => { 
+        p.update(); p.draw(); 
+        if (p.hp <= 0) plants.splice(i, 1);
+    });
+
+    zombies.forEach((z, i) => {
+        z.update(); z.draw();
+        let eating = false;
+        plants.forEach(p => {
+            if (p.row === z.row && Math.abs(z.x - p.x) < CELL_WIDTH * 0.4) {
+                eating = true;
+                if (p.onTop) { p.onTop.hp -= 0.8; if (p.onTop.hp <= 0) p.onTop = null; } 
+                else { p.hp -= 0.8; }
+            }
+        });
+        z.isEating = eating;
+        if (z.hp <= 0) { zombies.splice(i, 1); score++; }
+    });
+    
+    projectiles.forEach((pr, i) => {
+        pr.x += 8; ctx.font = "24px Arial"; ctx.fillText(pr.emoji, pr.x, pr.y + 10);
+        zombies.forEach(z => { if (z.row === pr.row && pr.x > z.x && pr.x < z.x + 50) { z.hp -= pr.dmg; projectiles.splice(i, 1); } });
+        if (pr.x > canvas.width) projectiles.splice(i, 1);
+    });
+    
+    for (let i = sunDrops.length - 1; i >= 0; i--) if (sunDrops[i].update()) sunDrops.splice(i, 1); else sunDrops[i].draw();
+    for (let i = explosions.length - 1; i >= 0; i--) if (explosions[i].update()) explosions.splice(i, 1); else explosions[i].draw();
+    
+    sunDisplay.innerText = suns;
+    requestAnimationFrame(gameLoop);
+}
+</script>
+</body>
+</html>

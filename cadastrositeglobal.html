@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login & Cadastro WebRetro Switch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+  <style>
+    :root {
+      --cor-fundo-gradiente-inicio: #de3e09;
+      --cor-fundo-gradiente-fim: #F2B33D;
+      --cor-primaria: #732C02;
+      --cor-destaque: #a84405;
+      --cor-texto-wrapper: #fff;
+      --cor-borda-input: rgba(255, 255, 255, 0.2);
+      --cor-btn-fundo: #fff;
+      --cor-btn-texto: #333;
+      --cor-link: #fff;
+    }
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:'Poppins',sans-serif;
+    }
+
+    body{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(45deg,var(--cor-fundo-gradiente-inicio),var(--cor-fundo-gradiente-fim));
+      background-size:cover;
+      background-attachment:fixed;
+      color:var(--cor-texto-wrapper);
+      padding:20px;
+    }
+
+    .container{
+      width:420px;
+      background:transparent;
+      border:2px solid var(--cor-borda-input);
+      backdrop-filter:blur(15px);
+      box-shadow:0 0 20px rgba(0,0,0,.3);
+      border-radius:16px;
+      padding:30px;
+      padding-bottom:40px;
+    }
+
+    .tabs-wrapper{
+      width:100%;
+      background:var(--cor-destaque);
+      border-radius:30px;
+      position:relative;
+      height:42px;
+      margin-bottom:25px;
+      overflow:hidden;
+      padding:4px;
+      box-shadow:0 0 10px rgba(0,0,0,.3);
+    }
+
+    .slide-btn{
+      position:absolute;
+      top:4px;
+      left:4px;
+      width:calc(50% - 8px);
+      height:34px;
+      background:var(--cor-primaria);
+      border-radius:30px;
+      transition:.35s ease;
+      box-shadow:0 2px 8px rgba(0,0,0,.25);
+      z-index:1;
+    }
+
+    .tabs{
+      display:flex;
+      width:100%;
+      position:relative;
+      z-index:2;
+      height:34px;
+    }
+
+    .tab-btn{
+      flex:1;
+      border:none;
+      background:transparent;
+      cursor:pointer;
+      font-size:16px;
+      font-weight:600;
+      color:var(--cor-texto-wrapper);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:.3s;
+    }
+
+    .active-tab{
+      color:#fff;
+    }
+
+    form{
+      display:none;
+      opacity:0;
+      transform:scale(.96);
+      transition:35s ease;
+      padding-bottom:10px;
+    }
+
+    form.active{
+      display:block;
+      opacity:1;
+      transform:scale(1);
+    }
+
+    h1{
+      text-align:center;
+      margin-bottom:20px;
+      font-size:30px;
+    }
+
+    .field{
+      position:relative;
+      margin-bottom:30px;
+    }
+
+    input{
+      width:100%;
+      height:50px;
+      padding:15px 45px 15px 20px;
+      border:2px solid var(--cor-borda-input);
+      background:transparent;
+      border-radius:40px;
+      color:var(--cor-texto-wrapper);
+      outline:none;
+      font-size:16px;
+    }
+
+    input::placeholder{color:transparent;}
+
+    .field input:focus~label,
+    .field input:not(:placeholder-shown)~label{
+      top:-10px;
+      left:15px;
+      font-size:12px;
+      color:var(--cor-link);
+      background: transparent;
+      padding:2px 6px;
+      border-radius:10px;
+    }
+
+    label{
+      position:absolute;
+      left:20px;
+      top:50%;
+      transform:translateY(-50%);
+      font-size:16px;
+      pointer-events:none;
+      transition:.3s;
+    }
+
+    .field i{
+      position:absolute;
+      right:20px;
+      top:50%;
+      transform:translateY(-50%);
+      font-size:20px;
+    }
+
+    button.submit{
+      width:100%;
+      height:45px;
+      background:var(--cor-btn-fundo);
+      border:none;
+      border-radius:40px;
+      font-size:16px;
+      font-weight:600;
+      color:var(--cor-btn-texto);
+      cursor:pointer;
+      margin-top:10px;
+      transition:.3s;
+    }
+
+    button.submit:hover{
+      transform:scale(1.05);
+      background:#eee;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="tabs-wrapper">
+    <div class="slide-btn" id="slide"></div>
+    <div class="tabs">
+      <button class="tab-btn active-tab" id="btnLogin">LOGIN</button>
+      <button class="tab-btn" id="btnCadastro">CADASTRAR</button>
+    </div>
+  </div>
+
+  <form id="loginForm" class="active" action="login.php" method="POST">
+    <h1>LOGIN</h1>
+
+    <div class="field">
+      <input type="text" name="nome" id="login-nome" placeholder=" " required>
+      <label for="login-nome">Usuário</label>
+      <i class="bx bxs-user"></i>
+    </div>
+
+    <div class="field">
+      <input type="password" name="senha" id="login-senha" placeholder=" " required>
+      <label for="login-senha">Senha</label>
+      <i class="bx bxs-lock-alt"></i>
+    </div>
+
+    <button class="submit" type="submit">ENTRAR</button>
+  </form>
+
+  <form id="cadastroForm" action="cadastro.php" method="POST">
+    <h1>CADASTRO</h1>
+
+    <div class="field">
+      <input type="text" name="nome" id="cadastro-nome" placeholder=" " required>
+      <label for="cadastro-nome">Nome de Usuário</label>
+      <i class="bx bxs-user-plus"></i>
+    </div>
+
+   
+    <div class="field">
+      <input type="password" name="senha" id="cadastro-senha" placeholder=" " required>
+      <label for="cadastro-senha">Criar Senha</label>
+      <i class="bx bxs-lock"></i>
+    </div>
+
+    <button class="submit" type="submit">CADASTRAR</button>
+  </form>
+</div>
+
+<script>
+  const slide = document.getElementById("slide");
+  const loginForm = document.getElementById("loginForm");
+  const cadastroForm = document.getElementById("cadastroForm");
+  const btnLogin = document.getElementById("btnLogin");
+  const btnCadastro = document.getElementById("btnCadastro");
+
+  btnLogin.onclick = () => switchForm("login");
+  btnCadastro.onclick = () => switchForm("cadastro");
+
+  function switchForm(type){
+    if(type === "login"){
+      slide.style.left = "4px";
+      loginForm.classList.add("active");
+      cadastroForm.classList.remove("active");
+      btnLogin.classList.add("active-tab");
+      btnCadastro.classList.remove("active-tab");
+    }else{
+      slide.style.left = "calc(50% + 4px)";
+      loginForm.classList.remove("active");
+      cadastroForm.classList.add("active");
+      btnLogin.classList.remove("active-tab");
+      btnCadastro.classList.add("active-tab");
+    }
+  }
+</script>
+
+</body>
+</html>

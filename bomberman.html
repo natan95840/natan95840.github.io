@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Bomberman HTML5</title>
+    <style>
+        body {
+            background-color: #222;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Impede rolagem no mobile */
+            touch-action: none; /* Melhora resposta do toque */
+        }
+
+        h1 { margin: 10px 0; font-size: 20px; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* O Jogo */
+        canvas {
+            background-color: #359928; /* Cor da grama */
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            max-width: 100%;
+            max-height: 60vh; /* Ocupa 60% da altura para sobrar espaço pros botões */
+            image-rendering: pixelated; /* Mantém o visual retro nítido */
+        }
+
+        /* Controles na Tela */
+        .controls-area {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            box-sizing: border-box;
+            margin-top: 10px;
+        }
+
+        /* Botões Gerais */
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            user-select: none;
+            cursor: pointer;
+           
+        }
+        
+        .btn:active, .btn.pressed { background: rgba(255, 255, 255, 0.5); transform: scale(0.95); }
+
+        /* D-Pad Layout */
+        .dpad {
+            position: relative;
+            width: 140px;
+            height: 140px;
+        }
+        .dpad .btn { position: absolute; width: 45px; height: 45px; font-size: 18px; }
+        .dpad .up { top: 0; left: 50%; transform: translateX(-50%); }
+        .dpad .down { bottom: 0; left: 50%; transform: translateX(-50%); }
+        .dpad .left { top: 50%; left: 0; transform: translateY(-50%); }
+        .dpad .right { top: 50%; right: 0; transform: translateY(-50%); }
+
+        /* Botão de Ação */
+        .action-btn {
+            background-color: #e74c3c;
+            border-color: #c0392b;
+            width: 80px;
+            height: 80px;
+            font-size: 30px;
+            align-self: center;
+        }
+
+        #status {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Bomberman JS</h1>
+    
+    <canvas id="gameCanvas" width="520" height="520"></canvas>
+
+    <div id="status">
+        <h2 id="statusText">GAME OVER</h2>
+        <button onclick="resetGame()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Jogar Novamente</button>
+    </div>
+
+    <div class="controls-area">
+        <div class="dpad">
+            <div class="btn up" id="btnUp">⬆️</div>
+            <div class="btn left" id="btnLeft">⬅️</div>
+            <div class="btn right" id="btnRight">➡️</div>
+            <div class="btn down" id="btnDown">⬇️</div>
+        </div>
+        <div class="btn action-btn" id="btnBomb">💣</div>
+    </div>
+
+<script>
+    // --- Configurações do Jogo ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const gridSize = 40; // Tamanho de cada bloco (40x40px)
+    const rows = 13;
+    const cols = 13;
+
+    // Tipos de blocos
+    const TILE = { EMPTY: 0, HARD: 1, SOFT: 2, BOMB: 3, EXPLOSION: 4 };
+
+    let map = [];
+    let player = { x: 1, y: 1, alive: true };
+    let enemies = [];
+    let bombs = [];
+    let explosions = [];
+    let input = { up: false, down: false, left: false, right: false };
+    let gameActive = true;
+
+    // --- Inicialização ---
+    function init() {
+        // Gerar Mapa
+        map = [];
+        for (let r = 0; r < rows; r++) {
+            let row = [];
+            for (let c = 0; c < cols; c++) {
+                // Bordas e Paredes Fixas (padrão xadrez)
+                if (r === 0 || r === rows - 1 || c === 0 || c === cols - 1 || (r % 2 === 0 && c % 2 === 0)) {
+                    row.push(TILE.HARD);
+                } else {
+                    // Paredes quebráveis aleatórias (exceto no canto inicial 1,1 1,2 2,1)
+                    if (Math.random() < 0.4 && !(r < 3 && c < 3)) {
+                        row.push(TILE.SOFT);
+                    } else {
+                        row.push(TILE.EMPTY);
+                    }
+                }
+            }
+            map.push(row);
+        }
+
+        // Resetar entidades
+        player = { x: 1, y: 1, alive: true };
+        enemies = [
+            { x: 11, y: 11, dir: {x:0, y:-1}, speed: 0.05 },
+            { x: 11, y: 1, dir: {x:-1, y:0}, speed: 0.05 },
+            { x: 1, y: 11, dir: {x:1, y:0}, speed: 0.05 }
+        ];
+        bombs = [];
+        explosions = [];
+        gameActive = true;
+        document.getElementById('status').style.display = 'none';
+        
+        requestAnimationFrame(gameLoop);
+    }
+
+    // --- Lógica Principal ---
+
+    function gameLoop() {
+        if (!gameActive) return;
+
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function update() {
+        if (!player.alive) return gameOver();
+
+        // Movimento Player (Discreto - Bloco a Bloco com delay simples ou contínuo com verificação)
+        // Para simplificar este exemplo HTML único, faremos movimento com verificação de colisão simples
+        let nextX = player.x;
+        let nextY = player.y;
+        const speed = 0.10; // Velocidade do player
+
+        if (input.up) nextY -= speed;
+        if (input.down) nextY += speed;
+        if (input.left) nextX -= speed;
+        if (input.right) nextX += speed;
+
+        // Colisão Player com Paredes
+        // Verifica os 4 cantos do player para permitir deslizar
+        if (!checkCollision(nextX, player.y)) player.x = nextX;
+        if (!checkCollision(player.x, nextY)) player.y = nextY;
+
+        // Atualizar Inimigos
+        enemies.forEach((enemy, index) => {
+            let eNextX = enemy.x + (enemy.dir.x * enemy.speed);
+            let eNextY = enemy.y + (enemy.dir.y * enemy.speed);
+
+            // Se bater, muda direção aleatória
+            if (checkCollision(eNextX, eNextY)) {
+                const dirs = [{x:1,y:0}, {x:-1,y:0}, {x:0,y:1}, {x:0,y:-1}];
+                enemy.dir = dirs[Math.floor(Math.random() * dirs.length)];
+            } else {
+                enemy.x = eNextX;
+                enemy.y = eNextY;
+            }
+
+            // Colisão Inimigo com Player
+            if (Math.round(enemy.x) === Math.round(player.x) && Math.round(enemy.y) === Math.round(player.y)) {
+                player.alive = false;
+            }
+        });
+
+        // Atualizar Bombas
+        const now = Date.now();
+        bombs.forEach((bomb, index) => {
+            if (now - bomb.time > 2000) { // 2 segundos para explodir
+                explodeBomb(bomb.x, bomb.y, bomb.range);
+                bombs.splice(index, 1);
+            }
+        });
+
+        // Atualizar Explosões (remover após um tempo)
+        explosions = explosions.filter(exp => now - exp.time < 500); // Dura 0.5s
+        
+        // Checar morte por explosão
+        explosions.forEach(exp => {
+            // Player morre?
+            if (Math.round(player.x) === exp.x && Math.round(player.y) === exp.y) player.alive = false;
+            
+            // Inimigo morre?
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                if (Math.round(enemies[i].x) === exp.x && Math.round(enemies[i].y) === exp.y) {
+                    enemies.splice(i, 1); // Remove inimigo
+                }
+            }
+        });
+
+        // Vitória
+        if (enemies.length === 0) {
+            gameActive = false;
+            document.getElementById('statusText').innerText = "VOCÊ VENCEU!";
+            document.getElementById('status').style.display = 'block';
+        }
+    }
+
+    function checkCollision(x, y) {
+        // Verifica colisão com o mapa (Ponto central + margem para não prender nas quinas)
+        const margin = 0.2; 
+        const tilesToCheck = [
+            {c: Math.floor(x + margin), r: Math.floor(y + margin)},
+            {c: Math.floor(x + 1 - margin), r: Math.floor(y + margin)},
+            {c: Math.floor(x + margin), r: Math.floor(y + 1 - margin)},
+            {c: Math.floor(x + 1 - margin), r: Math.floor(y + 1 - margin)}
+        ];
+
+        for (let t of tilesToCheck) {
+            let tileType = map[t.r][t.c];
+            if (tileType === TILE.HARD || tileType === TILE.SOFT || (tileType === TILE.BOMB)) {
+                // Pequena gambiarra: permite andar "sobre" a bomba se acabou de colocar
+                // mas simplificando: bloqueia tudo.
+                return true; 
+            }
+        }
+        return false;
+    }
+
+    function placeBomb() {
+        if (!player.alive) return;
+        const bx = Math.round(player.x);
+        const by = Math.round(player.y);
+
+        // Limite de 1 bomba por vez na célula
+        if (!bombs.some(b => b.x === bx && b.y === by)) {
+            bombs.push({ x: bx, y: by, time: Date.now(), range: 2 });
+        }
+    }
+
+    function explodeBomb(bx, by, range) {
+        createExplosion(bx, by); // Centro
+
+        const dirs = [{x:0, y:-1}, {x:0, y:1}, {x:-1, y:0}, {x:1, y:0}];
+        
+        dirs.forEach(dir => {
+            for (let i = 1; i <= range; i++) {
+                let tx = bx + (dir.x * i);
+                let ty = by + (dir.y * i);
+                
+                if (tx < 0 || ty < 0 || tx >= cols || ty >= rows) break;
+                
+                let tile = map[ty][tx];
+                
+                if (tile === TILE.HARD) break; // Para na parede dura
+                
+                createExplosion(tx, ty);
+                
+                if (tile === TILE.SOFT) {
+                    map[ty][tx] = TILE.EMPTY; // Destrói parede mole
+                    break; // Para após destruir
+                }
+            }
+        });
+    }
+
+    function createExplosion(x, y) {
+        explosions.push({ x: x, y: y, time: Date.now() });
+    }
+
+    function gameOver() {
+        gameActive = false;
+        document.getElementById('statusText').innerText = "GAME OVER";
+        document.getElementById('status').style.display = 'block';
+    }
+
+    function resetGame() {
+        init();
+    }
+
+    // --- Renderização ---
+
+    function draw() {
+        // Limpar tela
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Desenhar Mapa
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                let x = c * gridSize;
+                let y = r * gridSize;
+
+                if (map[r][c] === TILE.HARD) {
+                    ctx.fillStyle = "#555"; // Cinza (Pedra)
+                    ctx.fillRect(x, y, gridSize, gridSize);
+                    // Detalhe 3D fake
+                    ctx.fillStyle = "#777"; ctx.fillRect(x+2, y+2, gridSize-4, gridSize-4);
+                } else if (map[r][c] === TILE.SOFT) {
+                    ctx.fillStyle = "#D35400"; // Tijolo
+                    ctx.fillRect(x+1, y+1, gridSize-2, gridSize-2);
+                    // Linhas de tijolo
+                    ctx.fillStyle = "#000"; 
+                    ctx.beginPath(); ctx.moveTo(x, y+20); ctx.lineTo(x+40, y+20); ctx.stroke();
+                }
+            }
+        }
+
+        // Desenhar Bombas
+        ctx.fillStyle = "#000";
+        bombs.forEach(b => {
+            ctx.beginPath();
+            ctx.arc(b.x * gridSize + 20, b.y * gridSize + 20, 15, 0, Math.PI * 2);
+            ctx.fill();
+            // Pavio
+            ctx.fillStyle = "red"; ctx.fillRect(b.x * gridSize + 22, b.y * gridSize + 2, 4, 8);
+            ctx.fillStyle = "#000"; // Volta cor bomba
+        });
+
+        // Desenhar Explosões
+        ctx.fillStyle = "orange";
+        explosions.forEach(e => {
+            ctx.fillRect(e.x * gridSize, e.y * gridSize, gridSize, gridSize);
+            ctx.fillStyle = "yellow";
+            ctx.fillRect(e.x * gridSize + 5, e.y * gridSize + 5, gridSize-10, gridSize-10);
+            ctx.fillStyle = "orange"; // Volta cor
+        });
+
+        // Desenhar Inimigos
+        ctx.fillStyle = "red";
+        enemies.forEach(e => {
+            let x = e.x * gridSize + 5;
+            let y = e.y * gridSize + 5;
+            ctx.fillRect(x, y, 30, 30);
+            // Olhos
+            ctx.fillStyle = "white"; ctx.fillRect(x+5, y+5, 8, 8); ctx.fillRect(x+18, y+5, 8, 8);
+            ctx.fillStyle = "red";
+        });
+
+        // Desenhar Player
+        if (player.alive) {
+            ctx.fillStyle = "white"; // Corpo
+            let px = player.x * gridSize + 5;
+            let py = player.y * gridSize + 5;
+            ctx.fillRect(px, py, 30, 30);
+            
+            ctx.fillStyle = "blue"; // Capacete
+            ctx.fillRect(px, py, 30, 10);
+            
+            ctx.fillStyle = "black"; // Olhos
+            ctx.fillRect(px+8, py+12, 4, 8); ctx.fillRect(px+20, py+12, 4, 8);
+        }
+    }
+
+    // --- Configuração de Inputs ---
+
+    // Teclado
+    window.addEventListener('keydown', (e) => {
+        if(e.key === "ArrowUp") input.up = true;
+        if(e.key === "ArrowDown") input.down = true;
+        if(e.key === "ArrowLeft") input.left = true;
+        if(e.key === "ArrowRight") input.right = true;
+        if(e.code === "Space") placeBomb();
+    });
+
+    window.addEventListener('keyup', (e) => {
+        if(e.key === "ArrowUp") input.up = false;
+        if(e.key === "ArrowDown") input.down = false;
+        if(e.key === "ArrowLeft") input.left = false;
+        if(e.key === "ArrowRight") input.right = false;
+    });
+
+    // Controles de Toque (Botões Virtuais)
+    const addTouch = (id, key) => {
+        const btn = document.getElementById(id);
+        // Mouse Events (PC testing)
+        btn.addEventListener('mousedown', (e) => { e.preventDefault(); input[key] = true; btn.classList.add('pressed'); });
+        btn.addEventListener('mouseup', (e) => { e.preventDefault(); input[key] = false; btn.classList.remove('pressed'); });
+        btn.addEventListener('mouseleave', (e) => { e.preventDefault(); input[key] = false; btn.classList.remove('pressed'); });
+        
+        // Touch Events (Mobile)
+        btn.addEventListener('touchstart', (e) => { e.preventDefault(); input[key] = true; btn.classList.add('pressed'); });
+        btn.addEventListener('touchend', (e) => { e.preventDefault(); input[key] = false; btn.classList.remove('pressed'); });
+    };
+
+    addTouch('btnUp', 'up');
+    addTouch('btnDown', 'down');
+    addTouch('btnLeft', 'left');
+    addTouch('btnRight', 'right');
+
+    const btnBomb = document.getElementById('btnBomb');
+    const bombAction = (e) => { e.preventDefault(); placeBomb(); btnBomb.classList.add('pressed'); setTimeout(()=>btnBomb.classList.remove('pressed'), 100); };
+    btnBomb.addEventListener('touchstart', bombAction);
+    btnBomb.addEventListener('mousedown', bombAction);
+
+    // Iniciar
+    init();
+
+</script>
+</body>
+</html>

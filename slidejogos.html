@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Jogos</title>
+
+  <!-- Fonte -->
+  <link href="https://fonts.googleapis.com/css2?family=Hind&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: arial;
+    }
+
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      background: linear-gradient(45deg, #de3e09, #F2B33D);
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: white;
+      min-height: 100vh;
+      animation: fadeIn 1.5s ease forwards;
+    }
+
+    /* Navbar */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      background-color: #732C02;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+      animation: slideDown 1s ease forwards;
+    }
+
+    /* Logo */
+    .logo img {
+      height: 40px;
+      margin-right: 15px;
+      border-radius: 50%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
+
+    .logo img:hover {
+      transform: scale(1.08);
+    }
+
+    /* Área da direita */
+    .right-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Botão Instagram */
+    .insta-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      
+    }
+
+    .insta-btn:hover {
+      background: #a84405;
+      transform: scale(1.1);
+    }
+
+    .insta-btn img {
+      width: 22px;
+      height: 22px;
+      filter: brightness(0) invert(1);
+    }
+
+    /* Container da pesquisa */
+    .search-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .search-btn {
+      background: transparent;
+      border: none;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.3s ease;
+      
+      z-index: 2;
+    }
+
+    .search-btn:hover {
+      background: #a84405;
+      transform: scale(1.1);
+    }
+
+    .search-btn img {
+      width: 20px;
+      height: 20px;
+      filter: brightness(0) invert(1);
+    }
+
+    /* Input que expande */
+    .search-input {
+      position: absolute;
+      right: 50px;
+      width: 0;
+      opacity: 0;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 20px;
+      outline: none;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      transition: all 0.4s ease;
+    }
+
+    .search-container.active .search-input {
+      width: 200px;
+      opacity: 1;
+    }
+
+    .search-input::placeholder {
+      color: #f8e1c4;
+    }
+
+    /* Conteúdo principal */
+    main {
+      padding: 130px 40px 60px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 25px;
+      margin-top: 20px;
+      animation: fadeUp 1.5s ease forwards;
+    }
+
+    /* Cards de jogos */
+    .game-card {
+      background: rgba(255,255,255,0.1);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+      text-decoration: none;
+      color: white;
+      backdrop-filter: blur(6px);
+    }
+
+    .game-card:hover {
+      transform:scale(1.05);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      background: rgba(255,255,255,0.15);
+    }
+
+    .game-card img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+    }
+
+    .game-card h3 {
+      padding: 10px;
+      font-size: 1rem;
+      text-align: center;
+      background: rgba(115, 44, 2, 0.7);
+    }
+
+    .no-results {
+      grid-column: 1 / -1;
+      text-align: center;
+      font-size: 1.1rem;
+      color: #fff7e0;
+      margin-top: 40px;
+      display: none;
+    }
+
+    /* Animações */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsividade */
+    @media (max-width: 600px) {
+      nav {
+        padding: 0 20px;
+      }
+
+      main {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav>
+    <div class="logo">
+      <img src="logotipo.png" alt="Logo WebJogos">
+    </div>
+
+    <div class="right-section">
+      <div class="search-container" id="searchBox">
+        <input type="text" class="search-input" id="searchInput" placeholder="Pesquisar jogos...">
+        <button class="search-btn" id="searchBtn">
+          <img src="lupa.png" alt="Lupa">
+        </button>
+      </div>
+
+      <a href="https://share.google/gtMuIo9dl51G1Urx7" target="_blank" class="insta-btn" title="Instagram">
+        <img src="Instagram.png" alt="Instagram">
+      </a>
+    </div>
+  </nav>
+
+  <!-- Conteúdo -->
+  <main id="gamesGrid">
+    <a href="pacman.html" target="_blank" class="game-card">
+      <img src="pac-man.png" alt="Super Corrida">
+      <h3>pac-man</h3>
+    </a>
+
+    <a href="mario game/MARIO.html" target="_blank" class="game-card">
+      <img src="mariorun.png" alt="Aventura Ninja">
+      <h3>mario run</h3>
+    </a>
+
+    <a href="jegue quiz/Jegue Quiz.HTML" target="_blank" class="game-card">
+      <img src="jegue quiz.png" alt="Desafio Cósmico">
+      <h3>jegue quiz</h3>
+    </a>
+
+    <a href="bomberman.html" target="_blank" class="game-card">
+      <img src="bomberman.jpg" alt="Guerra Espacial">
+      <h3>bomber-man</h3>
+    </a>
+
+    <a href="pvz/index.html" target="_blank" class="game-card">
+      <img src="pvz/bgpvz.jpg" alt="Quebra-Cabeça 3D">
+      <h3>EVZ</h3>
+    </a>
+
+        <a href="https://www.friv.com" target="_blank" class="game-card">
+      <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original-wordmark.svg" alt="Super Corrida">
+      <h3>EVZ</h3>
+    </a>
+
+
+    <p class="no-results" id="noResults" style="font-size: 3vh;">Nenhum jogo encontrado<br><img src="what.gif" alt="" style="width:200px; height:200px;"></p>
+    
+  </main>
+
+  <script>
+    const searchBox = document.getElementById('searchBox');
+    const searchBtn = document.getElementById('searchBtn');
+    const input = document.getElementById('searchInput');
+    const cards = document.querySelectorAll('.game-card');
+    const noResults = document.getElementById('noResults');
+
+    searchBtn.addEventListener('click', () => {
+      searchBox.classList.add('active');
+      input.focus();
+    });
+
+    input.addEventListener('blur', () => {
+      if (input.value.trim() === "") {
+        searchBox.classList.remove('active');
+      }
+    });
+
+    input.addEventListener('input', () => {
+      const value = input.value.toLowerCase();
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const title = card.querySelector('h3').textContent.toLowerCase();
+        if (title.includes(value)) {
+          card.style.display = 'block';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    });
+  </script>
+</body>
+</html>
+

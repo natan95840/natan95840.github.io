@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji vs Zombies - Loading</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Arial Rounded MT Bold', sans-serif;
+            background-ibackground-image: url(bgpvz.jpg);  /* Fundo preto para o efeito de entrada ficar melhor */
+        }
+
+        /* Camada para o Background para o blur não criar bordas brancas */
+        .bg-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('bgpvz.jpg') no-repeat center center fixed;
+            background-size: cover;
+            z-index: -1;
+        }
+
+        .main-screen {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 40px 0 0 0;
+            background: rgba(0, 0, 0, 0.1);
+            
+            /* Animação de Entrada: Opacidade e Blur sumindo */
+            animation: introEffect 1.8s ease-out forwards;
+        }
+
+        @keyframes introEffect {
+            from { opacity: 0; filter: blur(20px); transform: scale(1.1); }
+            to { opacity: 1; filter: blur(0); transform: scale(1); }
+        }
+
+        /* Classe de Saída: Blur voltando e Opacidade sumindo */
+        .fadeOutEffect {
+            animation: outroEffect 1.2s ease-in forwards !important;
+        }
+
+        @keyframes outroEffect {
+            from { opacity: 1; filter: blur(0); transform: scale(1); }
+            to { opacity: 0; filter: blur(20px); transform: scale(0.9); }
+        }
+
+        /* Título */
+        .logo-container {
+            width: 80%;
+            max-width: 600px;
+            z-index: 10;
+            animation: floating 3.5s ease-in-out infinite;
+        }
+
+        .logo-img {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6));
+        }
+
+        @keyframes floating {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(1deg); }
+        }
+
+        .bottom-container {
+            width: 100%;
+            height: 20vh;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        /* Ciclista */
+        .rider-box {
+            position: absolute;
+            bottom: 20%;
+            left: -300px;
+            font-size: 11rem;
+            transform: scaleX(-1);
+            filter: drop-shadow(0 15px 10px rgba(0,0,0,0.4));
+            z-index: 100;
+            animation: moveGlitchy 10s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+        }
+
+        .rider-emoji {
+            display: inline-block;
+            animation: pedalAction 0.4s infinite alternate ease-in-out;
+        }
+
+        @keyframes moveGlitchy {
+            0%   { left: -20%; }
+            20%  { left: 10%; }
+            35%  { left: 12%; }
+            50%  { left: 15%; }
+            70%  { left: 80%; }
+            85%  { left: 82%; }
+            100% { left: 120%; }
+        }
+
+        @keyframes pedalAction {
+            from { transform: rotate(-8deg) translateY(0); }
+            to { transform: rotate(8deg) translateY(-12px); }
+        }
+
+        .status-wrapper {
+            position: absolute;
+            top: -80px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .status-text {
+            font-size: 1.8rem;
+            color: white;
+            background: rgba(0,0,0,0.6);
+            padding: 12px 45px;
+            border-radius: 50px;
+            backdrop-filter: blur(8px);
+            border: 2px solid rgba(255,255,255,0.3);
+            display: inline-block;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .wind-trail {
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            font-size: 4rem;
+            opacity: 0;
+            animation: showWind 10s linear forwards;
+        }
+
+        @keyframes showWind {
+            65% { opacity: 0; transform: translateX(0); }
+            70% { opacity: 0.9; transform: translateX(150px); }
+            80% { opacity: 0; transform: translateX(250px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer"></div>
+
+    <div class="main-screen" id="viewport">
+        <div class="logo-container">
+            <img src="titulo.png" alt="Emojis vs Zombies" class="logo-img">
+        </div>
+
+        <div class="bottom-container">
+            <div class="rider-box">
+                <span class="rider-emoji">🚴🏻‍♂️</span>
+                <span class="wind-trail">💨</span>
+            </div>
+
+            <div class="status-wrapper">
+                <div class="status-text" id="loading-msg">Preparando o jardim...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const msg = document.getElementById('loading-msg');
+        const viewport = document.getElementById('viewport');
+        
+        // Mensagens durante o percurso
+        setTimeout(() => { msg.innerText = "Corrente soltou! ⚙️"; }, 3200);
+        setTimeout(() => { msg.innerText = "Pegando velocidade... 💪"; }, 5500);
+        setTimeout(() => { msg.innerText = "ZUMBIS DETECTADOS! 🚨"; }, 8000);
+
+        // Início da transição de saída aos 9 segundos (1s antes de trocar)
+        setTimeout(() => {
+            viewport.classList.add('fadeOutEffect');
+            
+            setTimeout(() => {
+                window.location.href = 'pvz.html';
+            }, 1100); // Tempo para a animação de desfoque terminar
+        }, 9000);
+    </script>
+</body>
+</html>

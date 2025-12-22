@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="jump.png" type="image/x-icon">
+    <title>Mario Run</title>
+    <style>
+        .but1:hover {
+            
+            transition: 0.5s;
+            cursor: pointer;
+        }
+.but2:hover {
+            
+            transition: 0.5s;
+            cursor: pointer;
+        }
+        body {
+            background-image: url(bg.jpg);
+            background-size: cover;
+            background-repeat: no-repeat;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        img.card {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 1000px;
+            height: 450px;
+        }
+
+        .but1 {
+            font-size: 60px;
+            background-color: #C84C0C;
+            border-color: brown;
+            border-width: 10px;
+            position: fixed;
+            top: 77%;
+            left: 40%;
+            transform: translateX(-50%);
+            height: 90px;
+            width: 300px;
+        }
+        .but2 {
+            font-size: 60px;
+            background-color: #C84C0C;
+            border-color: brown;
+            border-width: 10px;
+            position: fixed;
+            top: 77%;
+            left: 61.5%;
+            transform: translateX(-50%);
+             height: 90px;
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+
+    <img src="card.png" class="card">
+
+    <a href="FASE1.HTML">
+        <button class="but1"><img src="PLAYER1HOVER.png"></button>
+    </a>
+    <a href="FASE1MULTIPLAYER.HTML">
+     <button class="but2"> <img src="PLAYER2HOVER.png"></button>
+    </a>
+
+</body>
+</html>
