@@ -105,7 +105,7 @@
       display:none;
       opacity:0;
       transform:scale(.96);
-      transition:35s ease;
+      transition:.35s ease;
       padding-bottom:10px;
     }
 
@@ -201,7 +201,7 @@
     </div>
   </div>
 
-  <form id="loginForm" class="active" action="login.php" method="POST">
+  <form id="loginForm" class="active">
     <h1>LOGIN</h1>
 
     <div class="field">
@@ -219,7 +219,7 @@
     <button class="submit" type="submit">ENTRAR</button>
   </form>
 
-  <form id="cadastroForm" action="cadastro.php" method="POST">
+  <form id="cadastroForm">
     <h1>CADASTRO</h1>
 
     <div class="field">
@@ -228,7 +228,6 @@
       <i class="bx bxs-user-plus"></i>
     </div>
 
-   
     <div class="field">
       <input type="password" name="senha" id="cadastro-senha" placeholder=" " required>
       <label for="cadastro-senha">Criar Senha</label>
@@ -239,7 +238,10 @@
   </form>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
+  /* --- SEU JAVASCRIPT ORIGINAL --- */
   const slide = document.getElementById("slide");
   const loginForm = document.getElementById("loginForm");
   const cadastroForm = document.getElementById("cadastroForm");
@@ -264,7 +266,59 @@
       btnCadastro.classList.add("active-tab");
     }
   }
+
+  /* --- CONEXÃO COM SUPABASE --- */
+  
+  const SUPABASE_URL = 'https://nyxaiupotuqozdhaqzlp.supabase.co'; 
+  const SUPABASE_KEY = 'sb_publishable_Lz0_rNSduScBbEX1ZO189w_IIENfz0h';
+  const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Cadastro
+  cadastroForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const nome = document.getElementById("cadastro-nome").value;
+    const senha = document.getElementById("cadastro-senha").value;
+
+    const { data, error } = await _supabase
+      .from('usuarios')
+      .insert([{ nome: nome, senha: senha }]);
+
+    if (error) {
+      alert("Erro ao cadastrar: " + error.message);
+    } else {
+      alert("Usuário cadastrado com sucesso!");
+      switchForm("login");
+    }
+  };
+
+  // Login com Redirecionamento
+  loginForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const nome = document.getElementById("login-nome").value;
+    const senha = document.getElementById("login-senha").value;
+
+    // Busca o usuário que tenha o nome E a senha iguais ao digitado
+    const { data, error } = await _supabase
+      .from('usuarios')
+      .select('*')
+      .eq('nome', nome)
+      .eq('senha', senha)
+      .single();
+
+    if (error || !data) {
+      alert("Usuário ou senha incorretos.");
+    } else {
+      // Salva o nome na sessão para usar depois (opcional)
+      localStorage.setItem('usuarioLogado', data.nome);
+      
+      alert("Login realizado com sucesso! Redirecionando...");
+      
+      // REDIRECIONAMENTO AQUI: Troque 'index.html' pelo nome do seu arquivo principal
+      window.location.href = "index2.html"; 
+    }
+  };
 </script>
 
 </body>
-</html>
+      </html>
+  
