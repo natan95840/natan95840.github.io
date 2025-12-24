@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login & Cadastro WebRetro Switch</title>
+  <title>Login & Cadastro WebRetro</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
@@ -37,6 +37,33 @@
       background-attachment:fixed;
       color:var(--cor-texto-wrapper);
       padding:20px;
+    }
+
+    /* ESTILOS DA TELA DE CARREGAMENTO */
+    #loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #00000066;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    #loading-screen img {
+      width: 120px; /* Mantém o tamanho pequeno/original */
+      height: auto;
+    }
+
+    #loading-screen.active {
+      opacity: 1;
+      pointer-events: all;
     }
 
     .container{
@@ -191,6 +218,10 @@
 </head>
 <body>
 
+<div id="loading-screen">
+  <img src="loading.gif" alt="Carregando...">
+</div>
+
 <div class="container">
 
   <div class="tabs-wrapper">
@@ -241,12 +272,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-  /* --- SEU JAVASCRIPT ORIGINAL --- */
   const slide = document.getElementById("slide");
   const loginForm = document.getElementById("loginForm");
   const cadastroForm = document.getElementById("cadastroForm");
   const btnLogin = document.getElementById("btnLogin");
   const btnCadastro = document.getElementById("btnCadastro");
+  const loadingScreen = document.getElementById("loading-screen");
 
   btnLogin.onclick = () => switchForm("login");
   btnCadastro.onclick = () => switchForm("cadastro");
@@ -268,12 +299,11 @@
   }
 
   /* --- CONEXÃO COM SUPABASE --- */
-  
   const SUPABASE_URL = 'https://nyxaiupotuqozdhaqzlp.supabase.co'; 
   const SUPABASE_KEY = 'sb_publishable_Lz0_rNSduScBbEX1ZO189w_IIENfz0h';
   const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // Cadastro
+  // Cadastro (Sem animação, apenas alerta)
   cadastroForm.onsubmit = async (e) => {
     e.preventDefault();
     const nome = document.getElementById("cadastro-nome").value;
@@ -291,13 +321,12 @@
     }
   };
 
-  // Login com Redirecionamento
+  // Login com Animação de Carregamento
   loginForm.onsubmit = async (e) => {
     e.preventDefault();
     const nome = document.getElementById("login-nome").value;
     const senha = document.getElementById("login-senha").value;
 
-    // Busca o usuário que tenha o nome E a senha iguais ao digitado
     const { data, error } = await _supabase
       .from('usuarios')
       .select('*')
@@ -308,17 +337,19 @@
     if (error || !data) {
       alert("Usuário ou senha incorretos.");
     } else {
-      // Salva o nome na sessão para usar depois (opcional)
       localStorage.setItem('usuarioLogado', data.nome);
       
-      alert("Login realizado com sucesso! Redirecionando...");
+      // ATIVA A ANIMAÇÃO DE CARREGAMENTO AQUI
+      loadingScreen.classList.add("active");
       
-      // REDIRECIONAMENTO AQUI: Troque 'index.html' pelo nome do seu arquivo principal
-      window.location.href = "index2.html"; 
+      // Aguarda 2 segundos (o tempo da sua animação) e redireciona
+      setTimeout(() => {
+        window.location.href = "index2.html"; 
+      }, 2000);
     }
   };
 </script>
 
 </body>
-      </html>
-  
+        </html>
+      
