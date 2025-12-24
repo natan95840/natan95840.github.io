@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Web Jogos</title>
 
-  <!-- Fonte -->
   <link href="https://fonts.googleapis.com/css2?family=Hind&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 
   <style>
@@ -29,6 +28,28 @@
       color: white;
       min-height: 100vh;
       animation: fadeIn 1.5s ease forwards;
+    }
+
+    /* --- ESTILO DA TELA DE CARREGAMENTO --- */
+    #loading-screen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #00000066;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    #loading-screen.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    #loading-screen img {
+      width: 120px;
+      height: auto;
     }
 
     /* Navbar */
@@ -78,7 +99,6 @@
       height: 42px;
       border-radius: 50%;
       transition: all 0.3s ease;
-      
     }
 
     .insta-btn:hover {
@@ -111,7 +131,6 @@
       justify-content: center;
       cursor: pointer;
       transition: background 0.3s ease, transform 0.3s ease;
-      
       z-index: 2;
     }
 
@@ -231,7 +250,11 @@
   </style>
 </head>
 <body>
-  <!-- Navbar -->
+
+  <div id="loading-screen">
+    <img src="loading.gif" alt="Carregando...">
+  </div>
+
   <nav>
     <div class="logo">
       <img src="logotipo.png" alt="Logo WebJogos">
@@ -251,38 +274,36 @@
     </div>
   </nav>
 
-  <!-- Conteúdo -->
   <main id="gamesGrid">
-    <a href="pacman.html" target="_blank" class="game-card">
+    <a href="pacman.html" class="game-card">
       <img src="pac-man.png" alt="Super Corrida">
       <h3>pac-man</h3>
     </a>
 
-    <a href="MARIO.html" target="_blank" class="game-card">
+    <a href="mario game/MARIO.html" class="game-card">
       <img src="mariorun.png" alt="Aventura Ninja">
       <h3>mario run</h3>
     </a>
 
-    <a href="Jegue Quiz.HTML" target="_blank" class="game-card">
+    <a href="jegue quiz/Jegue Quiz.HTML" class="game-card">
       <img src="jegue quiz.png" alt="Desafio Cósmico">
       <h3>jegue quiz</h3>
     </a>
 
-    <a href="bomberman.html" target="_blank" class="game-card">
+    <a href="bomberman.html" class="game-card">
       <img src="bomberman.jpg" alt="Guerra Espacial">
       <h3>bomber-man</h3>
     </a>
 
-    <a href="indexpvz.html" target="_blank" class="game-card">
-      <img src="bgpvz.jpg" alt="Quebra-Cabeça 3D">
+    <a href="pvz/index.html" class="game-card">
+      <img src="pvz/bgpvz.jpg" alt="Quebra-Cabeça 3D">
       <h3>EVZ</h3>
     </a>
 
-        <a href="https://www.friv.com" target="_blank" class="game-card">
+    <a href="https://www.friv.com" class="game-card">
       <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original-wordmark.svg" alt="Super Corrida">
-      <h3>blocked</h3>
+      <h3>FRIV</h3>
     </a>
-
 
     <p class="no-results" id="noResults" style="font-size: 3vh;">Nenhum jogo encontrado<br><img src="what.gif" alt="" style="width:200px; height:200px;"></p>
     
@@ -294,7 +315,9 @@
     const input = document.getElementById('searchInput');
     const cards = document.querySelectorAll('.game-card');
     const noResults = document.getElementById('noResults');
+    const loadingScreen = document.getElementById('loading-screen');
 
+    // Pesquisa
     searchBtn.addEventListener('click', () => {
       searchBox.classList.add('active');
       input.focus();
@@ -322,8 +345,24 @@
 
       noResults.style.display = visibleCount === 0 ? 'block' : 'none';
     });
+
+    // --- LÓGICA DA ANIMAÇÃO DE CARREGAMENTO ---
+    cards.forEach(card => {
+      card.addEventListener('click', function(e) {
+        // Remove o target="_blank" para a animação funcionar na mesma aba
+        // Se quiser manter o target="_blank", a animação aparecerá mas a página nova abrirá em outra aba.
+        // Removi aqui para ficar mais fluido como um app.
+        e.preventDefault(); 
+        
+        const url = this.getAttribute('href');
+        loadingScreen.classList.add('active');
+
+        setTimeout(() => {
+          window.location.href = url;
+        }, 2000); // 2 segundos de loading
+      });
+    });
   </script>
 </body>
-</html>
-
-
+  </html>
+          
