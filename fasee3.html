@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fase3</title>
+    <link rel="icon" href="cerebro.webp" type="image/x-icon">
+    <style>
+           * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: cursive;
+      overflow-x: hidden;
+      overflow-y: hidden;
+    }
+
+        body{
+            background: fixed;
+            overflow-x: hidden;
+            background-color: rgb(255, 255, 255);
+            
+        }
+        button:hover{
+            color: rgb(11, 77, 23);
+            transition: 0.2s;
+            cursor: pointer;
+          background-color:chartreuse
+        }
+        button{
+           
+           background-color: chocolate;
+           transition: 0.2s;
+        }
+        a{
+            color: white;
+            text-decoration-line: none;
+        }
+        a:hover{
+            color:rgb(255, 1, 43) ;
+            transition: 0,3s;
+        }
+      
+        #teleportButton {
+            position: absolute;
+            padding: 10px 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            width: 1%;
+            height: 1%;
+            background-color: rgba(255, 255, 255, 0);
+            font-size: 80px;
+        }
+        p{
+            font-family: Segoe Print;
+        }
+    </style>
+</head>
+<body>
+
+
+
+    <center><p style="font-size: 14vh;" > 3. clique no emoji</p></center>
+    <a href="fasee4.html"<button id="teleportButton" >🤡</button>
+
+    <script>
+        let counter = 0;
+        const button = document.getElementById("teleportButton");
+
+        button.addEventListener("mouseenter", function() {
+            if (counter < 10) {
+                const maxWidth = window.innerWidth - button.offsetWidth;
+                const maxHeight = window.innerHeight - button.offsetHeight;
+
+                const randomX = Math.random() * maxWidth;
+                const randomY = Math.random() * maxHeight;
+
+                button.style.left = `${randomX}px`;
+                button.style.top = `${randomY}px`;
+
+                counter++;
+            }
+        });
+    </script>
+    <a href="https://youtu.be/xvFZjo5PgG0?si=Iq2y5uc0k4oFrKm4" style="position: absolute;bottom: 20px; right: 20px;text-decoration: none;font-family: Bernard MT Condensed;color: black;"> todos os direitos reservados a @natan_587._.b.</a>
+</body>
+      </html>
